@@ -7,8 +7,11 @@ import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.hoho.android.usbserial.driver.CdcAcmSerialDriver
+import com.hoho.android.usbserial.driver.ProbeTable
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -59,8 +62,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // dengan metode usb serial for android
         btnOpen.setOnClickListener {
-            openDevice()
+            //openDevice()
+            openDeviceWithCustomProber()
         }
     }
 
@@ -68,6 +73,42 @@ class MainActivity : AppCompatActivity() {
         val manager = getSystemService(Context.USB_SERVICE) as UsbManager
         // Find all available drivers from attached devices.
         val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager)
+        if (availableDrivers.isEmpty()) {
+            val textView = findViewById<TextView>(R.id.tv_response)
+            textView.text = "availableDrivers is empty"
+            return
+        }
+
+        // Open a connection to the first available driver.
+        val driver = availableDrivers[0]
+        val connection = manager.openDevice(driver.device)
+        if (connection == null) {
+            // add UsbManager.requestPermission(driver.getDevice(), ..) handling here
+            Toast.makeText(this@MainActivity, "connection is nil", Toast.LENGTH_LONG).show()
+            return;
+        }
+
+        val port = driver.ports[0] // Most devices have just one port (port 0)
+        port.open(connection)
+        port.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
+
+        val textView = findViewById<TextView>(R.id.tv_response)
+        textView.text = "Connection is open = ${port.isOpen}"
+    }
+
+    private fun openDeviceWithCustomProber() {
+        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+
+        // Probe for our custom CDC devices, which use VID 0x1234
+        // and PIDS 0x0001 and 0x0002.
+        val customTable = ProbeTable()
+        customTable.addProduct(0x1234, 0x0001, CdcAcmSerialDriver::class.java)
+        customTable.addProduct(0x1234, 0x0002, CdcAcmSerialDriver::class.java)
+
+        val prober = UsbSerialProber(customTable)
+
+        // Find all available drivers from attached devices.
+        val availableDrivers = prober.findAllDrivers(manager)
         if (availableDrivers.isEmpty()) {
             val textView = findViewById<TextView>(R.id.tv_response)
             textView.text = "availableDrivers is empty"
