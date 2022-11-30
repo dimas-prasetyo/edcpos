@@ -2,6 +2,8 @@ package com.mdsulistyo.edcpos
 
 import android.content.Context
 import android.hardware.usb.UsbDevice
+import android.hardware.usb.UsbDeviceConnection
+import android.hardware.usb.UsbEndpoint
 import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.widget.TextView
@@ -11,7 +13,6 @@ import com.hoho.android.usbserial.driver.CdcAcmSerialDriver
 import com.hoho.android.usbserial.driver.ProbeTable
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity() {
             textView.text = text
         }
 
-        btnSend.setOnClickListener {
+        /*btnSend.setOnClickListener {
             // get UsbInterface {A class representing an interface on a UsbDevice}
             d?.getInterface(0)?.also { intf ->
                 // get UsbEndpoint {A class representing an endpoint on a UsbInterface}
@@ -60,6 +61,11 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, "not sent!!", Toast.LENGTH_LONG).show()
                 }
             }
+        }*/
+
+        // Agak laen
+        btnSend.setOnClickListener {
+            sendCommandVersiLain()
         }
 
         // dengan metode usb serial for android
@@ -130,5 +136,25 @@ class MainActivity : AppCompatActivity() {
 
         val textView = findViewById<TextView>(R.id.tv_response)
         textView.text = "Connection is open = ${port.isOpen}"
+    }
+
+    private fun sendCommandVersiLain() {
+        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val devices: Map<String, UsbDevice> = manager.deviceList
+        val mDevice: UsbDevice? = devices["/dev/bus/usb/001/002"]
+        if (mDevice != null) {
+            try {
+                val connection: UsbDeviceConnection = manager.openDevice(mDevice)
+                val c = mDevice.getInterface(0)
+                val textView = findViewById<TextView>(R.id.tv_response)
+                textView.text = "DEBUG sendCommandVersiLain : $c"
+                //val endpoint: UsbEndpoint? = mDevice.getInterface(0).getEndpoint(0)
+
+                //connection.claimInterface(mDevice.getInterface(0), true)
+                //connection.bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT)
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }
