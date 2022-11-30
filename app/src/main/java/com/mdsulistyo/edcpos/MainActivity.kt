@@ -148,10 +148,19 @@ class MainActivity : AppCompatActivity() {
                 val c = mDevice.getInterface(0)
                 val textView = findViewById<TextView>(R.id.tv_response)
                 textView.text = "DEBUG sendCommandVersiLain : $c"
-                //val endpoint: UsbEndpoint? = mDevice.getInterface(0).getEndpoint(0)
+                val endpoint: UsbEndpoint? = mDevice.getInterface(0).getEndpoint(0)
 
-                //connection.claimInterface(mDevice.getInterface(0), true)
-                //connection.bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT)
+                connection.claimInterface(mDevice.getInterface(0), true)
+                val msg = "0201500230323030303030303130303030303030303030303030303030303136383837303036323732303138393220202032353130303030303030303030303030303020204E30303030302020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200308"
+                //val msg = "0201500103"
+                bytes = msg.toByteArray()
+                Thread(Runnable {
+                    // a potentially time consuming task
+                    val result = connection.bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT)
+                    textView.post {
+                        Toast.makeText(this@MainActivity, "RESULT : $result", Toast.LENGTH_LONG).show()
+                    }
+                }).start()
             } catch (e: Exception) {
                 Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
             }
