@@ -6,6 +6,7 @@ import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbEndpoint
 import android.hardware.usb.UsbManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -65,6 +66,7 @@ class MainActivity : AppCompatActivity() {
 
         // Agak laen
         btnSend.setOnClickListener {
+            checkData()
             sendCommandVersiLain()
         }
 
@@ -151,9 +153,10 @@ class MainActivity : AppCompatActivity() {
                 val endpoint: UsbEndpoint? = mDevice.getInterface(0).getEndpoint(0)
 
                 connection.claimInterface(mDevice.getInterface(0), true)
-                val msg = "0201500230323030303030303130303030303030303030303030303030303136383837303036323732303138393220202032353130303030303030303030303030303020204E30303030302020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200308"
+                //val msg = "0201500230323030303030303130303030303030303030303030303030303136383837303036323732303138393220202032353130303030303030303030303030303020204E30303030302020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200308"
+                val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
                 //val msg = "0201500103"
-                bytes = msg.toByteArray()
+                bytes = msg.decodeHex()
                 Thread(Runnable {
                     // a potentially time consuming task
                     val result = connection.bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT)
@@ -165,5 +168,44 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun checkData() {
+        val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
+        val chunk = msg.chunked(2)
+        Log.d("TAG", "checkData ${msg.length} ${chunk.size}")
+        Log.d("TAG", "checkData chunk $chunk")
+        Log.d("TAG", "checkData hexToByte ${msg.decodeHex()} ${msg.decodeHex().size}")
+    }
+
+    /*private fun hexToByte(data: String) : ByteArray {
+        //remove any spaces from the string
+        var msg = data
+        msg = msg.replace(" ", "")
+        val chunk = msg.chunked(2)
+        //create a byte array the length of the
+        //divided by 2 (Hex is 2 characters in length)
+        val comBuffer = ByteArray(chunk.size)
+        //loop through the length of the provided string
+        for(i in chunk.indices) {
+            //convert each set of 2 characters to a byte
+            //and add to the array
+           comBuffer[i] = chunk[i].toByte()
+        }
+        //return the array
+        return comBuffer
+    }*/
+
+    /*private fun String.chunked(size: Int): List<String> {
+        val nChunks = length / size
+        return (0 until nChunks).map { substring(it * size, (it + 1) * size) }
+    }*/
+
+    private fun String.decodeHex(): ByteArray {
+        check(length % 2 == 0) { "Must have an even length" }
+
+        return chunked(2)
+            .map { it.toInt(16).toByte() }
+            .toByteArray()
     }
 }
