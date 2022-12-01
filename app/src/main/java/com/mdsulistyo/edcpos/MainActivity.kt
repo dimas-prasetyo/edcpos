@@ -47,17 +47,27 @@ class MainActivity : AppCompatActivity() {
         }
 
         /*btnSend.setOnClickListener {
+            val devices: Map<String, UsbDevice> = manager.deviceList
+            val mDevice: UsbDevice? = devices["/dev/bus/usb/001/002"]
             // get UsbInterface {A class representing an interface on a UsbDevice}
-            d?.getInterface(0)?.also { intf ->
+            mDevice?.getInterface(0)?.also { intf ->
                 // get UsbEndpoint {A class representing an endpoint on a UsbInterface}
                 intf.getEndpoint(0)?.also { endpoint ->
                     // UsbDeviceConnection openDevice
-                    manager.openDevice(d)?.apply {
-                        val msg = ""
-                        bytes = msg.toByteArray()
-                        claimInterface(intf, forceClaim)
-                        bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT) //do in another thread
-                        Toast.makeText(this@MainActivity, "sent!!", Toast.LENGTH_LONG).show()
+                    manager.openDevice(mDevice)?.apply {
+                        val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
+                        bytes = msg.decodeHex()
+                        //claimInterface(intf, forceClaim)
+                        //bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT) //do in another thread
+                        //Toast.makeText(this@MainActivity, "sent!!", Toast.LENGTH_LONG).show()
+                        Thread(Runnable {
+                            claimInterface(intf, forceClaim)
+                            // a potentially time consuming task
+                            val result = bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT) //do in another thread
+                            textView.post {
+                                Toast.makeText(this@MainActivity, "RESULT : $result", Toast.LENGTH_LONG).show()
+                            }
+                        }).start()
                     }
                     Toast.makeText(this@MainActivity, "not sent!!", Toast.LENGTH_LONG).show()
                 }
