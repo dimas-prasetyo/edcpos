@@ -1,6 +1,10 @@
 package com.mdsulistyo.edcpos
 
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbEndpoint
@@ -14,12 +18,14 @@ import com.hoho.android.usbserial.driver.CdcAcmSerialDriver
 import com.hoho.android.usbserial.driver.ProbeTable
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bytes: ByteArray
     private val TIMEOUT = 0
     private val forceClaim = true
+    private val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,54 +37,77 @@ class MainActivity : AppCompatActivity() {
         val btnOpen = findViewById<TextView>(R.id.btn_open)
 
         var text = ""
-        var d: UsbDevice? = null
+        var usbDevice: UsbDevice? = null
         val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+
+        val filter = IntentFilter(ACTION_USB_PERMISSION)
+        //registerReceiver(usbReceiver, filter)
+
 
         btnLoad.setOnClickListener {
             // loading list device yang terkoneksi
             val deviceList = manager.deviceList
+
+
             text = "\nDevice count: ${deviceList.size}"
             for (device in deviceList) {
                 // simpan value UsbDevice
-                d = device.value
-                text += "\nDevice: $d"
+                usbDevice = device.value
+                text += "\nDevice: $usbDevice"
             }
             textView.text = text
+
+
+            val mDevice: UsbDevice? = deviceList.values.elementAt(0)
+            val permissionIntent = PendingIntent.getBroadcast(this, 0, Intent(ACTION_USB_PERMISSION), 0)
+            manager.requestPermission(mDevice, permissionIntent)
+
         }
 
-        /*btnSend.setOnClickListener {
+        btnSend.setOnClickListener {
             val devices: Map<String, UsbDevice> = manager.deviceList
-            val mDevice: UsbDevice? = devices["/dev/bus/usb/001/002"]
+            val mDevice: UsbDevice = devices.values.elementAt(0)
+            //println("DEVICE: " + mDevice)
+            println("00 : " + mDevice.getConfiguration(0).interfaceCount)
+            println("01 : " + mDevice.getConfiguration(0).getInterface(0).endpointCount)
+            println("02 : " + mDevice.getConfiguration(0).getInterface(1).endpointCount)
+            //var tesEndpoint =
             // get UsbInterface {A class representing an interface on a UsbDevice}
-            mDevice?.getInterface(0)?.also { intf ->
+            mDevice.getInterface(1).also { intf ->
                 // get UsbEndpoint {A class representing an endpoint on a UsbInterface}
-                intf.getEndpoint(0)?.also { endpoint ->
+                intf.getEndpoint(1).also { endpoint ->
                     // UsbDeviceConnection openDevice
-                    manager.openDevice(mDevice)?.apply {
-                        val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
-                        bytes = msg.decodeHex()
-                        //claimInterface(intf, forceClaim)
-                        //bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT) //do in another thread
-                        //Toast.makeText(this@MainActivity, "sent!!", Toast.LENGTH_LONG).show()
-                        Thread(Runnable {
+                    try {
+                        manager.openDevice(mDevice).apply {
+                            val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
+                            bytes = msg.decodeHex()
                             claimInterface(intf, forceClaim)
-                            // a potentially time consuming task
-                            val result = bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT) //do in another thread
-                            textView.post {
-                                Toast.makeText(this@MainActivity, "RESULT : $result", Toast.LENGTH_LONG).show()
-                            }
-                        }).start()
+                            //controlTransfer(0x21, 0x22, 0x1, 0, null, 0, 0)
+                            //bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT) //do in another thread
+                            //Toast.makeText(this@MainActivity, "sent!!", Toast.LENGTH_LONG).show()
+                            println("SENDING: " + endpoint + " | " + bytes + " | " + bytes.size + " | " + TIMEOUT)
+                            Thread(Runnable {
+                                //claimInterface(intf, forceClaim)
+                                // a potentially time consuming task
+                                val result = bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT) //do in another thread
+                                textView.post {
+                                    Toast.makeText(this@MainActivity, "RESULT : $result", Toast.LENGTH_LONG).show()
+                                }
+                            }).start()
+                        }
+                    } catch (e: Exception){
+                        Toast.makeText(this@MainActivity, "Gagal: " + e.message, Toast.LENGTH_LONG).show()
                     }
-                    Toast.makeText(this@MainActivity, "not sent!!", Toast.LENGTH_LONG).show()
                 }
             }
-        }*/
+        }
 
         // Agak laen
-        btnSend.setOnClickListener {
+        /*btnSend.setOnClickListener {
             checkData()
-            sendCommandVersiLain()
-        }
+            //sendCommandVersiLain()
+            sendTest()
+        }*/
 
         // dengan metode usb serial for android
         btnOpen.setOnClickListener {
@@ -153,7 +182,7 @@ class MainActivity : AppCompatActivity() {
     private fun sendCommandVersiLain() {
         val manager = getSystemService(Context.USB_SERVICE) as UsbManager
         val devices: Map<String, UsbDevice> = manager.deviceList
-        val mDevice: UsbDevice? = devices["/dev/bus/usb/001/002"]
+        val mDevice: UsbDevice = devices.values.elementAt(0)
         if (mDevice != null) {
             try {
                 val connection: UsbDeviceConnection = manager.openDevice(mDevice)
@@ -175,7 +204,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }).start()
             } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, "GAGAL" + e.message, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -218,4 +247,51 @@ class MainActivity : AppCompatActivity() {
             .map { it.toInt(16).toByte() }
             .toByteArray()
     }
+
+    private fun sendTest() {
+        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val devices: Map<String, UsbDevice> = manager.deviceList
+        val mDevice: UsbDevice = devices.values.elementAt(0)
+        if (mDevice != null) {
+            val connection: UsbDeviceConnection = manager.openDevice(mDevice)
+            val c = mDevice.getInterface(0)
+            val textView = findViewById<TextView>(R.id.tv_response)
+            textView.text = "DEBUG sendCommandVersiLain : $c"
+            mDevice.getInterface(1)
+            val endpoint: UsbEndpoint? = mDevice.getInterface(1).getEndpoint(0)
+            println("DEVICE: " + mDevice)
+            println("")
+
+            println("INTERFACE 0: " + mDevice.getInterface(0))
+            println("INTERFACE 1: " + mDevice.getInterface(1))
+
+            println("ENDPOINT 0.0: " + mDevice.getInterface(0).getEndpoint(0))
+            //println("ENDPOINT 0.1: " + mDevice.getInterface(0).getEndpoint(1))
+
+            println("ENDPOINT 1.0: " + mDevice.getInterface(1).getEndpoint(0))
+            //println("ENDPOINT 1.1: " + mDevice.getInterface(1).getEndpoint(1))
+            try {
+                connection.claimInterface(mDevice.getInterface(0), true)
+                connection.controlTransfer(0x21, 0x22, 0x1, 0, null, 0, 0);
+                println("BERHASIL CLAIM INTERFACE")
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "GAGAL" + e.message, Toast.LENGTH_LONG).show()
+            }
+
+            try {
+                val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
+                bytes = msg.decodeHex()
+                Thread(Runnable {
+                    val result = connection.bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT)
+                    println("BERHASIL CONNECTION BULK")
+                    textView.post {
+                        Toast.makeText(this@MainActivity, "RESULT : $result", Toast.LENGTH_LONG).show()
+                    }
+                }).start()
+            } catch (e: Exception){
+                Toast.makeText(this@MainActivity, "GAGAL 2" + e.message, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
 }
