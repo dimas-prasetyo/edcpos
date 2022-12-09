@@ -65,13 +65,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnSend.setOnClickListener {
-            val devices: Map<String, UsbDevice> = manager.deviceList
+            checkData()
+            /*val devices: Map<String, UsbDevice> = manager.deviceList
             val mDevice: UsbDevice = devices.values.elementAt(0)
-            //println("DEVICE: " + mDevice)
-            println("00 : " + mDevice.getConfiguration(0).interfaceCount)
-            println("01 : " + mDevice.getConfiguration(0).getInterface(0).endpointCount)
-            println("02 : " + mDevice.getConfiguration(0).getInterface(1).endpointCount)
-            //var tesEndpoint =
             // get UsbInterface {A class representing an interface on a UsbDevice}
             mDevice.getInterface(1).also { intf ->
                 // get UsbEndpoint {A class representing an endpoint on a UsbInterface}
@@ -85,9 +81,7 @@ class MainActivity : AppCompatActivity() {
                             //controlTransfer(0x21, 0x22, 0x1, 0, null, 0, 0)
                             //bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT) //do in another thread
                             //Toast.makeText(this@MainActivity, "sent!!", Toast.LENGTH_LONG).show()
-                            println("SENDING: " + endpoint + " | " + bytes + " | " + bytes.size + " | " + TIMEOUT)
                             Thread(Runnable {
-                                //claimInterface(intf, forceClaim)
                                 // a potentially time consuming task
                                 val result = bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT) //do in another thread
                                 textView.post {
@@ -99,14 +93,14 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this@MainActivity, "Gagal: " + e.message, Toast.LENGTH_LONG).show()
                     }
                 }
-            }
+            }*/
         }
 
         // Agak laen
         /*btnSend.setOnClickListener {
             checkData()
             //sendCommandVersiLain()
-            sendTest()
+            //sendTest()
         }*/
 
         // dengan metode usb serial for android
@@ -193,9 +187,11 @@ class MainActivity : AppCompatActivity() {
 
                 connection.claimInterface(mDevice.getInterface(0), true)
                 //val msg = "0201500230323030303030303130303030303030303030303030303030303136383837303036323732303138393220202032353130303030303030303030303030303020204E30303030302020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200308"
-                val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
-                //val msg = "0201500103"
-                bytes = msg.decodeHex()
+                /*val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
+                bytes = msg.decodeHex()*/
+
+                val tesMsg = ""
+                bytes = tesMsg.decodeHex()
                 Thread(Runnable {
                     // a potentially time consuming task
                     val result = connection.bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT)
@@ -212,9 +208,34 @@ class MainActivity : AppCompatActivity() {
     private fun checkData() {
         val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
         val chunk = msg.chunked(2)
-        Log.d("TAG", "checkData ${msg.length} ${chunk.size}")
+        /*Log.d("TAG", "checkData ${msg.length} ${chunk.size}")
         Log.d("TAG", "checkData chunk $chunk")
-        Log.d("TAG", "checkData hexToByte ${msg.decodeHex()} ${msg.decodeHex().size}")
+        Log.d("TAG", "checkData hexToByte ${msg.decodeHex()} ${msg.decodeHex().size}")*/
+
+        val tesMsg = "01000000000100000000000000   1688700627201892251000000000        N                                                                                   "
+        //val tesMsg = "02015001303130303030303030303031303030303030303030303"
+        val builder: StringBuilder = StringBuilder(msg.length * 2)
+
+
+        for (b in msg) {
+            //val st = java.lang.String.format("%02c", b)
+            //val st = "%2c".format(b)
+            //var st = String.format("%03X", b)
+            val st = b.toString().toInt(16)
+
+            builder.append(st)
+        }
+
+        bytes = msg.decodeHex()
+        /*println("TES 0: " + EDCManager.EDCBCAResponseMessage.TransAmount("444900"))
+        println("TES 1: " + EDCManager.EDCBCARequestMessage.TransAmount("555800"))
+        println("")
+        println("TES 2: " + EDCManager.EDCBCAResponseMessage._TransAmount.value)
+        println("TES 3: " + EDCManager.EDCBCARequestMessage._TransAmount.value)*/
+
+        println("TES: " + builder.toString())
+        val textView = findViewById<TextView>(R.id.tv_response)
+        textView.text = msg.tesDecodeHex()
     }
 
     /*private fun hexToByte(data: String) : ByteArray {
@@ -248,50 +269,12 @@ class MainActivity : AppCompatActivity() {
             .toByteArray()
     }
 
-    private fun sendTest() {
-        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
-        val devices: Map<String, UsbDevice> = manager.deviceList
-        val mDevice: UsbDevice = devices.values.elementAt(0)
-        if (mDevice != null) {
-            val connection: UsbDeviceConnection = manager.openDevice(mDevice)
-            val c = mDevice.getInterface(0)
-            val textView = findViewById<TextView>(R.id.tv_response)
-            textView.text = "DEBUG sendCommandVersiLain : $c"
-            mDevice.getInterface(1)
-            val endpoint: UsbEndpoint? = mDevice.getInterface(1).getEndpoint(0)
-            println("DEVICE: " + mDevice)
-            println("")
 
-            println("INTERFACE 0: " + mDevice.getInterface(0))
-            println("INTERFACE 1: " + mDevice.getInterface(1))
+    private fun String.tesDecodeHex(): String {
+        check(length % 2 == 0) { "Must have an even length" }
 
-            println("ENDPOINT 0.0: " + mDevice.getInterface(0).getEndpoint(0))
-            //println("ENDPOINT 0.1: " + mDevice.getInterface(0).getEndpoint(1))
-
-            println("ENDPOINT 1.0: " + mDevice.getInterface(1).getEndpoint(0))
-            //println("ENDPOINT 1.1: " + mDevice.getInterface(1).getEndpoint(1))
-            try {
-                connection.claimInterface(mDevice.getInterface(0), true)
-                connection.controlTransfer(0x21, 0x22, 0x1, 0, null, 0, 0);
-                println("BERHASIL CLAIM INTERFACE")
-            } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, "GAGAL" + e.message, Toast.LENGTH_LONG).show()
-            }
-
-            try {
-                val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
-                bytes = msg.decodeHex()
-                Thread(Runnable {
-                    val result = connection.bulkTransfer(endpoint, bytes, bytes.size, TIMEOUT)
-                    println("BERHASIL CONNECTION BULK")
-                    textView.post {
-                        Toast.makeText(this@MainActivity, "RESULT : $result", Toast.LENGTH_LONG).show()
-                    }
-                }).start()
-            } catch (e: Exception){
-                Toast.makeText(this@MainActivity, "GAGAL 2" + e.message, Toast.LENGTH_LONG).show()
-            }
-        }
+        return chunked(2)
+            .map { it.toInt(16) }
+            .toString()
     }
-
 }
