@@ -18,7 +18,10 @@ import com.hoho.android.usbserial.driver.CdcAcmSerialDriver
 import com.hoho.android.usbserial.driver.ProbeTable
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
+import com.mdsulistyo.edcpos.EDCManager.SendRequestToEDCBCA
 import kotlin.concurrent.thread
+import kotlin.experimental.xor
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
@@ -75,7 +78,8 @@ class MainActivity : AppCompatActivity() {
                     // UsbDeviceConnection openDevice
                     try {
                         manager.openDevice(mDevice).apply {
-                            val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
+                            //val msg = "0201500130313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204E20202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200318"
+                            val msg = "02" + "0150" + "01" + SendSettlementRequestToEDCBCA() + "03"
                             bytes = msg.decodeHex()
                             claimInterface(intf, forceClaim)
                             //controlTransfer(0x21, 0x22, 0x1, 0, null, 0, 0)
@@ -216,16 +220,29 @@ class MainActivity : AppCompatActivity() {
         //val tesMsg = "02015001303130303030303030303031303030303030303030303"
         val builder: StringBuilder = StringBuilder(msg.length * 2)
 
-
-        for (b in msg) {
-            //val st = java.lang.String.format("%02c", b)
-            //val st = "%2c".format(b)
-            //var st = String.format("%03X", b)
-            val st = b.toString().toInt(16)
-
-            builder.append(st)
+        val ch: CharArray = tesMsg.toCharArray()
+        for (i in ch.indices) {
+            val hexString = Integer.toHexString(ch[i].code)
+            builder.append(hexString)
         }
 
+        val msg_frame = StringBuilder()
+        msg_frame.append("02" + "0150" + "01" + builder.toString() + "03")
+        val lrcs = msg_frame.toString().decodeHex()
+
+        var lrc = lrcs[0]
+        for (i in 1 until lrcs.size - 1) {
+            lrc = lrc xor lrcs[i + 1]
+        }
+        val lrcCh: CharArray = lrc.toString().toCharArray()
+        for (i in lrcCh.indices) {
+            val hexString = Integer.toHexString(lrcCh[i].code)
+            msg_frame.append(hexString)
+        }
+
+        //msg_frame.append(lrc)
+
+        //val lrcHex = Integer.toHexString(lrc)
         bytes = msg.decodeHex()
         /*println("TES 0: " + EDCManager.EDCBCAResponseMessage.TransAmount("444900"))
         println("TES 1: " + EDCManager.EDCBCARequestMessage.TransAmount("555800"))
@@ -233,9 +250,15 @@ class MainActivity : AppCompatActivity() {
         println("TES 2: " + EDCManager.EDCBCAResponseMessage._TransAmount.value)
         println("TES 3: " + EDCManager.EDCBCARequestMessage._TransAmount.value)*/
 
-        println("TES: " + builder.toString())
         val textView = findViewById<TextView>(R.id.tv_response)
-        textView.text = msg.tesDecodeHex()
+        //textView.text = SendSettlementRequestToEDCBCA() + "\n" + "\n" + "\n" + SendVoidRequestToEDCBCA("100009")
+
+        println("TES 0.0: " + "30313030303030303030303130303030303030303030303030302020203136383837303036323732303138393232353130303030303030303020202020202020204e2020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020" + "|")
+        println("TES 0.0: " + builder.toString() + "|")
+
+        println("TES 1: " + lrc)
+        println("TES 1: " + msg_frame)
+
     }
 
     /*private fun hexToByte(data: String) : ByteArray {
@@ -261,6 +284,26 @@ class MainActivity : AppCompatActivity() {
         return (0 until nChunks).map { substring(it * size, (it + 1) * size) }
     }*/
 
+
+    fun SendSaleRequestToEDCBCA(paymentAmount: Double): String {
+        val requestmsg = EDCManager.EDCBCARequestMessage()
+        requestmsg._TransType.value = "01"
+        requestmsg._TransAmount.value = paymentAmount.roundToInt().toString() + "00"
+        requestmsg._PAN.value = "1688700627201892"
+        requestmsg._ExpiryDate.value = "2510"
+        return SendRequestToEDCBCA(requestmsg)
+    }
+
+    fun SendSaleOtherAmountRequestToEDCBCA(paymentAmount: Double, otherAmount: Double): String {
+        val requestmsg = EDCManager.EDCBCARequestMessage()
+        requestmsg._TransType.value = "02"
+        requestmsg._TransAmount.value = paymentAmount.roundToInt().toString() + "00"
+        requestmsg._OtherAmount.value = otherAmount.roundToInt().toString() + "00"
+        requestmsg._PAN.value = "1688700627201892"
+        requestmsg._ExpiryDate.value = "2510"
+        return SendRequestToEDCBCA(requestmsg)
+    }
+
     private fun String.decodeHex(): ByteArray {
         check(length % 2 == 0) { "Must have an even length" }
 
@@ -270,11 +313,4 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun String.tesDecodeHex(): String {
-        check(length % 2 == 0) { "Must have an even length" }
-
-        return chunked(2)
-            .map { it.toInt(16) }
-            .toString()
-    }
 }

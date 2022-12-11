@@ -1,7 +1,11 @@
 package com.mdsulistyo.edcpos
 
+import android.R.string
+import kotlin.experimental.xor
+import kotlin.math.roundToInt
 
-class EDCManager {
+
+object EDCManager {
 
     fun GetErrorMesssage(responseCode: String): String {
         when (responseCode) {
@@ -19,51 +23,165 @@ class EDCManager {
         return ""
     }
 
+    fun SendFlazzSaleRequestToEDCBCA(paymentAmount: Double): String {
+        val requestmsg = EDCBCARequestMessage()
+        requestmsg._TransType.value = "06" // Flazz
+        requestmsg._TransAmount.value = paymentAmount.roundToInt().toString() + "00"
+        return SendRequestToEDCBCA(requestmsg)
+    }
+
+    fun SendVoidRequestToEDCBCA(paymentRef: String): String {
+        val requestmsg= EDCBCARequestMessage()
+        requestmsg._TransType.value = "08" //void sale
+        requestmsg._CancelReason.value = "02"
+        requestmsg._InvoiceNumber.value = paymentRef
+        return SendRequestToEDCBCA(requestmsg)
+    }
+
     fun SendSettlementRequestToEDCBCA(): String {
-        val requestmsg = EDCBCARequestMessage
-        requestmsg.TransType("10") //settlement
-        requestmsg.InstallmentFlag("Y")
-        requestmsg.RedeemFlag("Y")
-        requestmsg.DCCFlag("N")
-        requestmsg.InstallmentPlan("001")
-        requestmsg.InstallmentTenor("06")
+        val requestmsg = EDCBCARequestMessage()
+        requestmsg._TransType.value = "10"; //settlement
+        requestmsg._InstallmentFlag.value = "Y";
+        requestmsg._RedeemFlag.value = "Y";
+        requestmsg._DCCFlag.value = "N";
+        requestmsg._InstallmentPlan.value = "001";
+        requestmsg._InstallmentTenor.value = "06";
 
         return SendRequestToEDCBCA(requestmsg)
     }
 
-    private fun SendRequestToEDCBCA(requestmsg: EDCBCARequestMessage): String {
+    fun ReceiveResult(hexstring: String) {
+        val respData = EDCBCAResponseMessage()
+        var pos = 0
+        respData._TransType.value = hexstring.substring(pos, respData._TransType.length)
+        pos += respData._TransType.length
+        respData._TransAmount.value = hexstring.substring(pos, respData._TransAmount.length)
+        pos += respData._TransAmount.length
+        respData._OtherAmount.value = hexstring.substring(pos, respData._OtherAmount.length)
+        pos += respData._OtherAmount.length
+        respData._PAN.value = hexstring.substring(pos, respData._PAN.length)
+        pos += respData._PAN.length
+        respData._ExpiryDate.value = hexstring.substring(pos, respData._ExpiryDate.length)
+        pos += respData._ExpiryDate.length
+        respData._RespCode.value = hexstring.substring(pos, respData._RespCode.length)
+        pos += respData._RespCode.length
+        respData._RRN.value = hexstring.substring(pos, respData._RRN.length)
+        pos += respData._RRN.length
+        respData._ApprovalCode.value = hexstring.substring(pos, respData._ApprovalCode.length)
+        pos += respData._ApprovalCode.length
+        respData._Date.value = hexstring.substring(pos, respData._Date.length)
+        pos += respData._Date.length
+        respData._Time.value = hexstring.substring(pos, respData._Time.length)
+        pos += respData._Time.length
+        respData._MerchaintId.value = hexstring.substring(pos, respData._MerchaintId.length)
+        pos += respData._MerchaintId.length
+        respData._TerminalId.value = hexstring.substring(pos, respData._TerminalId.length)
+        pos += respData._TerminalId.length
+        respData._OfflineFlag.value = hexstring.substring(pos, respData._OfflineFlag.length)
+        pos += respData._OfflineFlag.length
+        respData._CardholderName.value = hexstring.substring(pos, respData._CardholderName.length)
+        pos += respData._CardholderName.length
+        respData._PANCashierCard.value = hexstring.substring(pos, respData._PANCashierCard.length)
+        pos += respData._PANCashierCard.length
+        respData._InvoiceNumber.value = hexstring.substring(pos, respData._InvoiceNumber.length)
+        pos += respData._InvoiceNumber.length
+        respData._BatchNumber.value = hexstring.substring(pos, respData._BatchNumber.length)
+        pos += respData._BatchNumber.length
+        respData._IssuerId.value = hexstring.substring(pos, respData._IssuerId.length)
+        pos += respData._IssuerId.length
+        respData._InstallmentFlag.value = hexstring.substring(pos, respData._InstallmentFlag.length)
+        pos += respData._InstallmentFlag.length
+        respData._DCCFlag.value = hexstring.substring(pos, respData._DCCFlag.length)
+        pos += respData._DCCFlag.length
+        respData._RedeemFlag.value = hexstring.substring(pos, respData._RedeemFlag.length)
+        pos += respData._RedeemFlag.length
+        respData._InformationAmount.value = hexstring.substring(pos, respData._InformationAmount.length)
+        pos += respData._InformationAmount.length
+        respData._DCCDecimalPlace.value = hexstring.substring(pos, respData._DCCDecimalPlace.length)
+        pos += respData._DCCDecimalPlace.length
+        respData._DCCCurrencyName.value = hexstring.substring(pos, respData._DCCCurrencyName.length)
+        pos += respData._DCCCurrencyName.length
+        respData._DCCExchangeRate.value = hexstring.substring(pos, respData._DCCExchangeRate.length)
+        pos += respData._DCCExchangeRate.length
+        respData._CouponFlag.value = hexstring.substring(pos, respData._CouponFlag.length)
+        pos += respData._CouponFlag.length
+        respData._Filler.value = hexstring.substring(pos, respData._Filler.length)
+        pos += respData._Filler.length
+    }
+
+
+
+
+    fun SendRequestToEDCBCA(requestmsg: EDCBCARequestMessage): String {
         try {
             val msg_frame = StringBuilder()
             val msg_data = StringBuilder()
-
-            msg_data.append(requestmsg._TransType.value) //trans type
-            msg_data.append(requestmsg._TransAmount.value) //trans amount
-            msg_data.append(requestmsg._OtherAmount.value) // other amount
-            msg_data.append(requestmsg._PAN.value) // PAN
-            msg_data.append(requestmsg._ExpiryDate.value) // Expire date
-            msg_data.append(requestmsg._CancelReason.value) // cancel reason
-            msg_data.append(requestmsg._InvoiceNumber.value) // invoice number
-            msg_data.append(requestmsg._AuthorIDResponse.value) // author ID respon
-            msg_data.append(requestmsg._InstallmentFlag.value) // installment Flag
-            msg_data.append(requestmsg._RedeemFlag.value) // redeem indicator
-            msg_data.append(requestmsg._DCCFlag.value) // DCC flag
-            msg_data.append(requestmsg._InstallmentPlan.value) // installment plan
-            msg_data.append(requestmsg._InstallmentTenor.value) // installment tenor
-            msg_data.append(requestmsg._GenericData.value) // generic data
+            msg_data.append(requestmsg.TransType()); //trans type
+            msg_data.append(requestmsg.TransAmount()); //trans amount
+            msg_data.append(requestmsg.OtherAmount()); // other amount
+            msg_data.append(requestmsg.PAN()); // PAN
+            msg_data.append(requestmsg.ExpiryDate()); // Expire date
+            msg_data.append(requestmsg.CancelReason()); // cancel reason
+            msg_data.append(requestmsg.InvoiceNumber()); // invoice number
+            msg_data.append(requestmsg.AuthorIDResponse()); // author ID respon
+            msg_data.append(requestmsg.InstallmentFlag()); // installment Flag
+            msg_data.append(requestmsg.RedeemFlag()); // redeem indicator
+            msg_data.append(requestmsg.DCCFlag()); // DCC flag
+            msg_data.append(requestmsg.InstallmentPlan()); // installment plan
+            msg_data.append(requestmsg.InstallmentTenor()); // installment tenor
+            msg_data.append(requestmsg.GenericData());
             msg_data.append(requestmsg.Filler("", 149 - msg_data.toString().length))
             //msg_data.Append("000000000000");
 
             val builder: StringBuilder = StringBuilder(msg_data.length * 2)
 
-            /*msg_data.toString().forEach { it ->
+            /*for (b in msg_data) {
+                //val st = String.format("%02X", b)
+                val st = Integer.toHexString(b)
+                builder.append(st)
+            }
+
+            msg_data.toString().forEach { it ->
                 println(it)
             }*/
 
-            for (b in msg_data.toString()) {
-                //val st = String.format("%02X", b)
-                //builder.append(st)
+            val ch: CharArray = msg_data.toString().toCharArray()
+            for (i in ch.indices) {
+                val hexString = Integer.toHexString(ch[i].code)
+                builder.append(hexString)
             }
-            return ""
+
+            msg_frame.append("02" + "0150" + "01" + builder.toString() + "03")
+
+            val lrcs = msg_frame.toString().decodeHex()
+
+            var lrc = lrcs[1]
+            for (i in 1 until lrcs.size - 1) {
+                lrc = lrc xor lrcs[i + 1]
+            }
+            val lrcCh: CharArray = lrc.toString().toCharArray()
+            for (i in lrcCh.indices) {
+                val hexString = Integer.toHexString(lrcCh[i].code)
+                msg_frame.append(hexString)
+            }
+            /*val lrcs: ByteArray = HexToByte(msg_frame.ToString())
+
+            var lrc = lrcs[1]
+            for (i in 1 until lrcs.length - 1) {
+                lrc = lrc xor lrcs[i + 1]
+            }*/
+
+
+            /*val lrcs: ByteArray = HexToByte(msg_frame.toString())
+
+            var lrc = lrcs[1]
+            for (i in 1 until lrcs.size - 1) {
+                lrc = lrc xor lrcs[i + 1]
+            }*/
+
+
+
+            return msg_frame.toString()
 
         } catch (e: Exception){
             println("error: " + e.message)
@@ -72,7 +190,7 @@ class EDCManager {
     }
 
 
-    object EDCBCARequestMessage {
+    class EDCBCARequestMessage {
         val _TransType = dataString("0", 2)
         val _TransAmount = dataString("0", 12)
         val _OtherAmount = dataString("0", 12)
@@ -94,108 +212,108 @@ class EDCManager {
             return if (data.length > 6) data.substring(0, 6) else data
         }
 
-        fun TransType(data: String): String{
-            if (data.length == _TransType.length){
+        fun TransType(): String{
+            /*if (_TransType.value.length == _TransType.length){
                 _TransType.value = data
-            }
+            }*/
             return _TransType.value
         }
 
-        fun TransAmount(data: String): String{
-            if (data.length <= _TransAmount.length){
-                _TransAmount.value = data.paddingLeft(_TransAmount.length, "0")
+        fun TransAmount(): String{
+            if (_TransAmount.value.length < _TransAmount.length){
+                _TransAmount.value = _TransAmount.value.paddingLeft(_TransAmount.length, "0")
             }
             return _TransAmount.value
         }
 
-        fun OtherAmount(data: String): String{
-            if (data.length <= _OtherAmount.length){
-                _OtherAmount.value = data.paddingLeft(_OtherAmount.length, "0")
+        fun OtherAmount(): String{
+            if (_OtherAmount.value.length < _OtherAmount.length){
+                _OtherAmount.value = _OtherAmount.value.paddingLeft(_OtherAmount.length, "0")
             }
             return _OtherAmount.value
         }
 
-        fun PAN(data: String): String{
-            if (data.length <= _PAN.length){
-                _PAN.value = data.paddingLeft(_PAN.length, " ")
+        fun PAN(): String{
+            if (_PAN.value.length < _PAN.length){
+                _PAN.value = _PAN.value.paddingLeft(_PAN.length, " ")
             }
             return _PAN.value
         }
 
-        fun ExpiryDate(data: String): String{
-            if (data.length <= _ExpiryDate.length){
-                _ExpiryDate.value = data.paddingLeft(_ExpiryDate.length, "0")
+        fun ExpiryDate(): String{
+            if (_ExpiryDate.value.length < _ExpiryDate.length){
+                _ExpiryDate.value = _ExpiryDate.value.paddingLeft(_ExpiryDate.length, "0")
             }
             return _ExpiryDate.value
         }
 
 
-        fun CancelReason(data: String): String{
-            if (data.length <= _CancelReason.length){
-                _CancelReason.value = data.paddingLeft(_CancelReason.length, "0")
+        fun CancelReason(): String{
+            if (_CancelReason.value.length < _CancelReason.length){
+                _CancelReason.value = _CancelReason.value.paddingLeft(_CancelReason.length, "0")
             }
             return _CancelReason.value
         }
 
-        fun InvoiceNumber(data: String): String{
-            if (data.length <= _InvoiceNumber.length){
-                _InvoiceNumber.value = data.paddingLeft(_InvoiceNumber.length, "0")
+        fun InvoiceNumber(): String{
+            if (_InvoiceNumber.value.length < _InvoiceNumber.length){
+                _InvoiceNumber.value = _InvoiceNumber.value.paddingLeft(_InvoiceNumber.length, "0")
             }
             return _InvoiceNumber.value
         }
 
-        fun AuthorIDResponse(data: String): String{
-            if (data.length <= _AuthorIDResponse.length){
-                _AuthorIDResponse.value = data.paddingLeft(_AuthorIDResponse.length, " ")
+        fun AuthorIDResponse(): String{
+            if (_AuthorIDResponse.value.length < _AuthorIDResponse.length){
+                _AuthorIDResponse.value = _AuthorIDResponse.value.paddingLeft(_AuthorIDResponse.length, " ")
             }
             return _AuthorIDResponse.value
         }
 
-        fun InstallmentFlag(data: String): String{
-            if (data.length <= _InstallmentFlag.length){
-                _InstallmentFlag.value = data.paddingLeft(_InstallmentFlag.length, " ")
+        fun InstallmentFlag(): String{
+            if (_InstallmentFlag.value.length < _InstallmentFlag.length){
+                _InstallmentFlag.value = _InstallmentFlag.value.paddingLeft(_InstallmentFlag.length, " ")
             }
             return _InstallmentFlag.value
         }
 
-        fun RedeemFlag(data: String): String{
-            if (data.length <= _RedeemFlag.length){
-                _RedeemFlag.value = data.paddingLeft(_RedeemFlag.length, " ")
+        fun RedeemFlag(): String{
+            if (_RedeemFlag.value.length < _RedeemFlag.length){
+                _RedeemFlag.value = _RedeemFlag.value.paddingLeft(_RedeemFlag.length, " ")
             }
             return _RedeemFlag.value
         }
 
-        fun DCCFlag(data: String): String{
-            if (data.length <= _DCCFlag.length){
-                _DCCFlag.value = data.paddingLeft(_DCCFlag.length, "N")
+        fun DCCFlag(): String{
+            if (_DCCFlag.value.length < _DCCFlag.length){
+                _DCCFlag.value = _DCCFlag.value.paddingLeft(_DCCFlag.length, "N")
             }
             return _DCCFlag.value
         }
 
-        fun InstallmentPlan(data: String): String{
-            if (data.length <= _InstallmentPlan.length){
-                _InstallmentPlan.value = data.paddingLeft(_InstallmentPlan.length, " ")
+        fun InstallmentPlan(): String{
+            if (_InstallmentPlan.value.length < _InstallmentPlan.length){
+                _InstallmentPlan.value = _InstallmentPlan.value.paddingLeft(_InstallmentPlan.length, " ")
             }
             return _InstallmentPlan.value
         }
 
-        fun InstallmentTenor(data: String): String{
-            if (data.length <= _InstallmentTenor.length){
-                _InstallmentTenor.value = data.paddingLeft(_InstallmentTenor.length, " ")
+        fun InstallmentTenor(): String{
+            if (_InstallmentTenor.value.length < _InstallmentTenor.length){
+                _InstallmentTenor.value = _InstallmentTenor.value.paddingLeft(_InstallmentTenor.length, " ")
             }
             return _InstallmentTenor.value
         }
 
-        fun GenericData(data: String): String{
-            if (data.length <= _GenericData.length){
-                _GenericData.value = data.paddingLeft(_GenericData.length, " ")
+        fun GenericData(): String{
+            if (_GenericData.value.length < _GenericData.length){
+                _GenericData.value = _GenericData.value.paddingLeft(_GenericData.length, " ")
             }
             return _GenericData.value
         }
 
-        fun ReffNumber(data: String): String{
-            if (data.length <= _ReffNumber.length){
-                _ReffNumber.value = data.paddingLeft(_ReffNumber.length, " ")
+        fun ReffNumber(): String{
+            if (_ReffNumber.value.length < _ReffNumber.length){
+                _ReffNumber.value = _ReffNumber.value.paddingLeft(_ReffNumber.length, " ")
             }
             return _ReffNumber.value
         }
@@ -218,8 +336,7 @@ class EDCManager {
 
     }
 
-
-    object EDCBCAResponseMessage {
+    class EDCBCAResponseMessage {
         var _TransType = dataString("0", 2)
         var _TransAmount = dataString("0", 12)
         var _OtherAmount = dataString("0", 12)
@@ -384,6 +501,13 @@ class EDCManager {
 
     }
 
+    private fun String.decodeHex(): ByteArray {
+        check(length % 2 == 0) { "Must have an even length" }
+
+        return chunked(2)
+            .map { it.toInt(16).toByte() }
+            .toByteArray()
+    }
 
     data class dataString(
         var value: String,
