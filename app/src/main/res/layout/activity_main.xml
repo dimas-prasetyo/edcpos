@@ -21,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAlignment="center"
-            android:text="Tap LOAD untuk cek perangkat terkoneksi\nTap SEND untuk mengirim data" />
+            android:text="Tap LOAD untuk cek perangkat terkoneksi\nTap SEND untuk mengirim data\nTap RECEIVE untuk menerima response" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_load"
@@ -41,8 +41,14 @@
             android:layout_height="wrap_content"
             android:text="OPEN" />
 
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_receive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RECEIVE" />
+
         <TextView
-            android:id="@+id/tv_response"
+            android:id="@+id/tvResponse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAlignment="center"

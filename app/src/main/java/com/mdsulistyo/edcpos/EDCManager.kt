@@ -1,6 +1,5 @@
 package com.mdsulistyo.edcpos
 
-import android.R.string
 import kotlin.experimental.xor
 import kotlin.math.roundToInt
 
@@ -109,9 +108,6 @@ object EDCManager {
         pos += respData._Filler.length
     }
 
-
-
-
     fun SendRequestToEDCBCA(requestmsg: EDCBCARequestMessage): String {
         try {
             val msg_frame = StringBuilder()
@@ -131,19 +127,8 @@ object EDCManager {
             msg_data.append(requestmsg.InstallmentTenor()); // installment tenor
             msg_data.append(requestmsg.GenericData());
             msg_data.append(requestmsg.Filler("", 149 - msg_data.toString().length))
-            //msg_data.Append("000000000000");
 
             val builder: StringBuilder = StringBuilder(msg_data.length * 2)
-
-            /*for (b in msg_data) {
-                //val st = String.format("%02X", b)
-                val st = Integer.toHexString(b)
-                builder.append(st)
-            }
-
-            msg_data.toString().forEach { it ->
-                println(it)
-            }*/
 
             val ch: CharArray = msg_data.toString().toCharArray()
             for (i in ch.indices) {
@@ -155,31 +140,13 @@ object EDCManager {
 
             val lrcs = msg_frame.toString().decodeHex()
 
-            var lrc = lrcs[1]
-            for (i in 1 until lrcs.size - 1) {
-                lrc = lrc xor lrcs[i + 1]
+            var lrc = lrcs[0]
+            for (i in 0 until lrcs.size) {
+                lrc = lrc xor lrcs[i]
             }
-            val lrcCh: CharArray = lrc.toString().toCharArray()
-            for (i in lrcCh.indices) {
-                val hexString = Integer.toHexString(lrcCh[i].code)
-                msg_frame.append(hexString)
-            }
-            /*val lrcs: ByteArray = HexToByte(msg_frame.ToString())
+            val hexLrc = Integer.toHexString(lrc.toInt())
 
-            var lrc = lrcs[1]
-            for (i in 1 until lrcs.length - 1) {
-                lrc = lrc xor lrcs[i + 1]
-            }*/
-
-
-            /*val lrcs: ByteArray = HexToByte(msg_frame.toString())
-
-            var lrc = lrcs[1]
-            for (i in 1 until lrcs.size - 1) {
-                lrc = lrc xor lrcs[i + 1]
-            }*/
-
-
+            msg_frame.append(hexLrc)
 
             return msg_frame.toString()
 
@@ -213,9 +180,6 @@ object EDCManager {
         }
 
         fun TransType(): String{
-            /*if (_TransType.value.length == _TransType.length){
-                _TransType.value = data
-            }*/
             return _TransType.value
         }
 
@@ -501,7 +465,7 @@ object EDCManager {
 
     }
 
-    private fun String.decodeHex(): ByteArray {
+    fun String.decodeHex(): ByteArray {
         check(length % 2 == 0) { "Must have an even length" }
 
         return chunked(2)
