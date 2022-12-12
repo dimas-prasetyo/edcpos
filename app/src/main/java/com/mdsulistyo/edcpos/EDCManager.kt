@@ -22,7 +22,7 @@ object EDCManager {
         return ""
     }
 
-    fun SendFlazzSaleRequestToEDCBCA(paymentAmount: Double): String {
+    /*fun SendFlazzSaleRequestToEDCBCA(paymentAmount: Double): String {
         val requestmsg = EDCBCARequestMessage()
         requestmsg._TransType.value = "06" // Flazz
         requestmsg._TransAmount.value = paymentAmount.roundToInt().toString() + "00"
@@ -47,64 +47,64 @@ object EDCManager {
         requestmsg._InstallmentTenor.value = "06";
 
         return SendRequestToEDCBCA(requestmsg)
-    }
+    }*/
 
-    fun ReceiveResult(hexstring: String) {
-        val respData = EDCBCAResponseMessage()
+    fun ReceiveResult(hexstring: String, respData: EDCBCAResponseMessage) {
+        //val respData = EDCBCAResponseMessage()
         var pos = 0
         respData._TransType.value = hexstring.substring(pos, respData._TransType.length)
         pos += respData._TransType.length
-        respData._TransAmount.value = hexstring.substring(pos, respData._TransAmount.length)
+        respData._TransAmount.value = hexstring.substring(pos, pos + respData._TransAmount.length)
         pos += respData._TransAmount.length
-        respData._OtherAmount.value = hexstring.substring(pos, respData._OtherAmount.length)
+        respData._OtherAmount.value = hexstring.substring(pos, pos + respData._OtherAmount.length)
         pos += respData._OtherAmount.length
-        respData._PAN.value = hexstring.substring(pos, respData._PAN.length)
+        respData._PAN.value = hexstring.substring(pos, pos + respData._PAN.length)
         pos += respData._PAN.length
-        respData._ExpiryDate.value = hexstring.substring(pos, respData._ExpiryDate.length)
+        respData._ExpiryDate.value = hexstring.substring(pos, pos + respData._ExpiryDate.length)
         pos += respData._ExpiryDate.length
-        respData._RespCode.value = hexstring.substring(pos, respData._RespCode.length)
+        respData._RespCode.value = hexstring.substring(pos, pos + respData._RespCode.length)
         pos += respData._RespCode.length
-        respData._RRN.value = hexstring.substring(pos, respData._RRN.length)
+        respData._RRN.value = hexstring.substring(pos, pos + respData._RRN.length)
         pos += respData._RRN.length
-        respData._ApprovalCode.value = hexstring.substring(pos, respData._ApprovalCode.length)
+        respData._ApprovalCode.value = hexstring.substring(pos, pos + respData._ApprovalCode.length)
         pos += respData._ApprovalCode.length
-        respData._Date.value = hexstring.substring(pos, respData._Date.length)
+        respData._Date.value = hexstring.substring(pos, pos + respData._Date.length)
         pos += respData._Date.length
-        respData._Time.value = hexstring.substring(pos, respData._Time.length)
+        respData._Time.value = hexstring.substring(pos, pos + respData._Time.length)
         pos += respData._Time.length
-        respData._MerchaintId.value = hexstring.substring(pos, respData._MerchaintId.length)
+        respData._MerchaintId.value = hexstring.substring(pos, pos + respData._MerchaintId.length)
         pos += respData._MerchaintId.length
-        respData._TerminalId.value = hexstring.substring(pos, respData._TerminalId.length)
+        respData._TerminalId.value = hexstring.substring(pos, pos + respData._TerminalId.length)
         pos += respData._TerminalId.length
-        respData._OfflineFlag.value = hexstring.substring(pos, respData._OfflineFlag.length)
+        respData._OfflineFlag.value = hexstring.substring(pos, pos + respData._OfflineFlag.length)
         pos += respData._OfflineFlag.length
-        respData._CardholderName.value = hexstring.substring(pos, respData._CardholderName.length)
+        respData._CardholderName.value = hexstring.substring(pos, pos + respData._CardholderName.length)
         pos += respData._CardholderName.length
-        respData._PANCashierCard.value = hexstring.substring(pos, respData._PANCashierCard.length)
+        respData._PANCashierCard.value = hexstring.substring(pos, pos + respData._PANCashierCard.length)
         pos += respData._PANCashierCard.length
-        respData._InvoiceNumber.value = hexstring.substring(pos, respData._InvoiceNumber.length)
+        respData._InvoiceNumber.value = hexstring.substring(pos, pos + respData._InvoiceNumber.length)
         pos += respData._InvoiceNumber.length
-        respData._BatchNumber.value = hexstring.substring(pos, respData._BatchNumber.length)
+        respData._BatchNumber.value = hexstring.substring(pos, pos + respData._BatchNumber.length)
         pos += respData._BatchNumber.length
-        respData._IssuerId.value = hexstring.substring(pos, respData._IssuerId.length)
+        respData._IssuerId.value = hexstring.substring(pos, pos + respData._IssuerId.length)
         pos += respData._IssuerId.length
-        respData._InstallmentFlag.value = hexstring.substring(pos, respData._InstallmentFlag.length)
+        respData._InstallmentFlag.value = hexstring.substring(pos, pos + respData._InstallmentFlag.length)
         pos += respData._InstallmentFlag.length
-        respData._DCCFlag.value = hexstring.substring(pos, respData._DCCFlag.length)
+        respData._DCCFlag.value = hexstring.substring(pos, pos + respData._DCCFlag.length)
         pos += respData._DCCFlag.length
-        respData._RedeemFlag.value = hexstring.substring(pos, respData._RedeemFlag.length)
+        respData._RedeemFlag.value = hexstring.substring(pos, pos + respData._RedeemFlag.length)
         pos += respData._RedeemFlag.length
-        respData._InformationAmount.value = hexstring.substring(pos, respData._InformationAmount.length)
+        respData._InformationAmount.value = hexstring.substring(pos, pos + respData._InformationAmount.length)
         pos += respData._InformationAmount.length
-        respData._DCCDecimalPlace.value = hexstring.substring(pos, respData._DCCDecimalPlace.length)
+        respData._DCCDecimalPlace.value = hexstring.substring(pos, pos + respData._DCCDecimalPlace.length)
         pos += respData._DCCDecimalPlace.length
-        respData._DCCCurrencyName.value = hexstring.substring(pos, respData._DCCCurrencyName.length)
+        respData._DCCCurrencyName.value = hexstring.substring(pos, pos + respData._DCCCurrencyName.length)
         pos += respData._DCCCurrencyName.length
-        respData._DCCExchangeRate.value = hexstring.substring(pos, respData._DCCExchangeRate.length)
+        respData._DCCExchangeRate.value = hexstring.substring(pos, pos + respData._DCCExchangeRate.length)
         pos += respData._DCCExchangeRate.length
-        respData._CouponFlag.value = hexstring.substring(pos, respData._CouponFlag.length)
+        respData._CouponFlag.value = hexstring.substring(pos, pos + respData._CouponFlag.length)
         pos += respData._CouponFlag.length
-        respData._Filler.value = hexstring.substring(pos, respData._Filler.length)
+        respData._Filler.value = hexstring.substring(pos, pos + respData._Filler.length)
         pos += respData._Filler.length
     }
 
@@ -353,8 +353,7 @@ object EDCManager {
             return _ExpiryDate.value
         }
 
-        fun RespCode(data: String): String{
-            _RespCode.value = data
+        fun RespCode(): String{
             return _RespCode.value
         }
 

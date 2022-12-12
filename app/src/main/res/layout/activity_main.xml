@@ -21,7 +21,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAlignment="center"
-            android:text="Tap LOAD untuk cek perangkat terkoneksi\nTap SEND untuk mengirim data\nTap RECEIVE untuk menerima response" />
+            android:text="Tap LOAD untuk cek perangkat terkoneksi\nTap OPEN untuk memilih port\nTap RECEIVE untuk menerima response" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_permission"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PERMISSION" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_load"
@@ -30,22 +36,34 @@
             android:text="LOAD" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btn_send"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SEND" />
-
-        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_open"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="OPEN" />
+
+        <!--<androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SEND" />-->
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_settlement"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SETTLEMENT" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_receive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="RECEIVE" />
+
+        <!--<androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_disconnect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DISCONNECT" />-->
 
         <TextView
             android:id="@+id/tvResponse"
