@@ -199,7 +199,7 @@ object EDCManager {
 
         fun PAN(): String{
             if (_PAN.value.length < _PAN.length){
-                _PAN.value = _PAN.value.paddingLeft(_PAN.length, " ")
+                _PAN.value = _PAN.value.paddingRight(_PAN.length, " ")
             }
             return _PAN.value
         }
@@ -296,6 +296,15 @@ object EDCManager {
             }
 
             return paddingLeft + this
+        }
+        fun String.paddingRight(maxLength: Int, replacement: String): String {
+            var paddingRight = ""
+            val deviation = maxLength - this.length
+            for (i in 0 until deviation){
+                paddingRight += replacement
+            }
+
+            return this + paddingRight
         }
 
     }

@@ -49,5 +49,5 @@ dependencies {
 
     //implementation 'me.jahnen.libaums:core:0.9.1'
     //implementation 'io.github.xmaihh:serialport:2.1.1'
-    implementation 'com.github.mik3y:usb-serial-for-android:3.4.6'
+    //implementation 'com.github.mik3y:usb-serial-for-android:3.4.6'
 }

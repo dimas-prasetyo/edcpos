@@ -44,8 +44,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         mUsbManger = getSystemService(Context.USB_SERVICE) as UsbManager
-
-
         setupClickListener()
         //binding.btnPermission.callOnClick()
 
@@ -80,8 +78,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnSettlement.setOnClickListener {
-            val msg = SendSattlementToEDCBCA()
+            //val msg = SendSattlementToEDCBCA()
+            val msg = SendSaleRequestToEDCBCA(1000.0)
+
             bytes = msg.decodeHex()
+            println("MESSAGE: $msg")
+            println("MESSAGE BYTE: $bytes")
 
             Thread(Runnable {
                 usedPort.write(bytes, TIMEOUT)
